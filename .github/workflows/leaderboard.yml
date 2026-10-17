@@ -2,7 +2,7 @@ name: Check NRPL leaderboard
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay runs a few minutes)
+    - cron: "*/60 * * * *"   # every 60 min (GitHub may delay runs a few minutes)
   workflow_dispatch:          # lets you run it manually from the Actions tab
 
 permissions:
