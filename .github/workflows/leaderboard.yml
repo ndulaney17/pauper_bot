@@ -2,7 +2,7 @@ name: Check NRPL leaderboard
 
 on:
   schedule:
-    - cron: "*/60 * * * *"   # every 60 min (GitHub may delay runs a few minutes)
+    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay runs a few minutes)
   workflow_dispatch:          # lets you run it manually from the Actions tab
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
       - name: Check leaderboard and post to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python bot_split.py --once   # use bot.py for the single-embed version
+        run: python bot.py --once
 
       - name: Save latest standings
         run: |
