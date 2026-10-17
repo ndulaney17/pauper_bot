@@ -1,6 +1,6 @@
 # NRPL Leaderboard → Discord
 
-Checks https://pauperleague.com/leaderboard every 15 minutes and posts an embed to
+Checks https://pauperleague.com/leaderboard every 60 minutes and posts an embed to
 your Discord channel when standings change (rank moves, points gained, new players,
 plus the current Top 12).
 
