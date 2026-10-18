@@ -2,8 +2,12 @@ name: Check NRPL leaderboard
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay runs a few minutes)
-  workflow_dispatch:          # lets you run it manually from the Actions tab
+    # Friday ~6:07 AM Central. GitHub cron is UTC and ignores daylight saving,
+    # so two runs are scheduled and the "Gate" step lets only the one that lands
+    # at 6 AM Central through (11:07 UTC in summer/CDT, 12:07 UTC in winter/CST).
+    - cron: "7 11 * * 5"
+    - cron: "7 12 * * 5"
+  workflow_dispatch:          # manual run from the Actions tab (skips the time check)
 
 permissions:
   contents: write             # needed to commit state.json
@@ -17,21 +21,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Gate - only run at 6 AM Central
+        id: gate
+        run: |
+          hour=$(TZ=America/Chicago date +%H)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$hour" = "06" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Central hour is $hour, not 06 - skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
 
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with:
           python-version: "3.12"
           cache: pip
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: pip install -r requirements.txt
 
       - name: Check leaderboard and post to Discord
+        if: steps.gate.outputs.run == 'true'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python bot.py --once
 
       - name: Save latest standings
+        if: steps.gate.outputs.run == 'true'
         run: |
           if [ -n "$(git status --porcelain state.json)" ]; then
             git config user.name "leaderboard-bot"
